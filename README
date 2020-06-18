@@ -1,0 +1,108 @@
+----------------------Petre Alexandra - 325 CB ---------------------------------
+
+                    TEMA PARADIGME DE PROGRAMARE
+                                HASKELL
+
+---- Cerinta a ----
+
+Functii implementate in fisierul ClassState.hs:
+
+    * initEmptyClass :: ClassState
+    Am creat ClassState ca un map in care [String] - este lista cu numele parametriilor
+si InstrType este tipul instructiunii. Am initializat ClassState-ul cu Map.empty,
+folosind Data.Map - am instantiat un tip ClassState gol.
+
+    * insertIntoClass :: ClassState -> InstrType -> [String] -> ClassState
+    Se introduc in clasa lista de parametrii pentru functie sau pentru variabila
+Am folosit Map.insert - din functiile ajutatoare de la Data.Map
+
+    * getValues :: ClassState -> InstrType -> [[String]]
+    Functia intoarce lista de parametrii (cheia din Map) in functie de instructiunea
+primita ca parametru (Map.filter (== instruction)).
+
+
+
+---- Cerinta b ----
+
+    Am definit Progamul ca un Map in care cheia este numele clasei iar elementul
+este un tuplu in care prima valoare este clasa parinte a clasei din cheie si cel
+de-al doilea element este de tipul ClassState.
+
+      * initEmptyProgram :: Program
+      Functia initEmptyProgram, instantiaza un program cu numele clasei si numele
+parintelui ca fiind Global (clasa de baza) si un ClassState empty.
+
+    * getVars :: Program -> [[String]]
+    Functia creaza o lista de liste de String-uri in care sunt salvate variabilele
+din program [[nume variabila, tipul variabilei]]. Am folosit o functie care
+imi scoate duplicatele pentru ca la apel se generau de mai multe ori variabilele
+din program. (removeDuplicates :: Eq a => [a] -> [a])
+
+    * getClasses :: Program -> [String]
+    Functia scoate o lista cu toate numele claselor din program. Cum Programul
+a fost definit ca un Map cu cheia numeClasa am folosit functia din setul oferit
+de Data.Map (Map.keys).
+
+    * getParentClass :: String -> Program -> String
+    Functia intoarce clasa parinte pentru o anumita clasa din Program. Am parcurs
+lista de clase cu Map.keys si am verificat daca numele clasei este acelasi cu
+numele dat ca parametru, daca il gasea il returna, altfel returneaza clasa 'Global'
+
+    * getFuncsForClass :: String -> Program -> [[String]]
+    Se vor intoarce functiile specifice unei clase date ca parametru. Se cauta
+in lista de clase, clasa care se potriveste cu clasa data ca parametru, se
+apeleaza functia getValues din ClassState.hs si se apeleaza pentru instructiunea
+Func. Se concateneaza toate functiile ["numeFunctie", "numeTipReturnat", "numeTipParametrii"]
+
+
+    Instructiunea  (fiecare rand din fisierul text) - am declarat-o ca o lista
+de String-uri  ex: ["newvar","a", "Double"];
+      * Functia de parse primeste tot fisierul text si il schimba in lista de
+instructiunii, adica in [[String]].
+      Am folosit 5 functii ajutatoare :
+        --- funct1 : primeste fisierul text, si il imparte in lista de Stringuri
+dupa linii adica ["newvar a=Double", "Int foo::Int, Int"].
+        --- funct2 : primeteste lista de linii din fisier si le sparge in functie
+de caracterele (',', '.', ':', ')' , '(') - le scoate si va crea o lista de Stringuri
+ex: [["newvar","a","Double"],["Int","A","foo","Int","Int"]]
+        --- funct3 : scoate listele care sunt nule ("") - pentru cazurile in care
+erau mai multe spatii libere din lista intoarsa de functia wordsAux
+        --- wordsAux - scoate din sirul de cuvinte caracterele respective
+(',', '.', ':', ')' , '(') si creeaza noul sir de cuvinte.
+        --- removeSpaces -face efectiv curatarea listei de [""] si intoarce o lista
+de String-uri corecta
+
+
+        * interpret :: Instruction -> Program -> Program
+        In functie de instructiune, functia interpret va:
+          -initializa o clasa: initClass :: Instruction -> Program -> Program
+                               Se va apela functia initEmptyClass atunci cand
+                               clasa nu are parinte (extends ClassParent)
+                               Se va apela functia initClass2 - cand clasa primita
+                               are parinte, si trebuie verificat daca parintele
+                               exista deja in program, daca nu, noua clasa va avea
+                               parintele principal "Global"
+          - insereaza o noua variabila: insertElem :: Instruction -> Program -> Program
+                               Se adauga in program o noua variabila, se adauga
+                               ["numeVar","tipVar"], se verifica pentru
+                               fiecare noua variabila daca clasa exista in
+                               Program, daca nu exista nu va fi adaugata.
+                               (functia verifClass)
+         - insereaza o noua functie: insertFunc :: Instruction -> Program -> Program
+                                Se insereaza o noua functie in program, dar inainte
+                                de a fi inserata se verifica daca tipul returnat
+                                (clasa) exista in program si daca fiecare parametru
+                                al functiei este dintr-o clasa deja existenta
+        Functiile swapElementsAt, modif si modif2 sunt folosite pentru a modifica
+        lista intiala ["Double","A","foo","Int","Int"] in ordinea corecta in care trebuie
+        inserata in lista ["foo", "Double", "Int","Int"]
+
+---- Cerinta c ----
+
+      * infer :: Expr -> Program -> Maybe String
+      Functia intoarce tipul returnat de o anumita variabila daca este apelata dupa
+      nume, sau tipul returnat de functie daca este apelata functia.
+      Se verifca in lista de Variabile din program daca variabila exista, daca da
+      se intoarce tipul ei, (al doilea parametru din lista de Stringuri).
+      Daca este functie, se verifica toti parametrii functiei, daca exista ca variabile
+      sau ca functii in program si se intoarce tipul returnat de functia apelata.
